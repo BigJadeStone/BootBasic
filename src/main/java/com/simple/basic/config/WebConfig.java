@@ -1,18 +1,24 @@
 package com.simple.basic.config;
 
+import java.util.Arrays;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.simple.basic.controller.HomeController;
+import com.simple.basic.util.UserAuthHandler;
+import com.simple.basic.util.UserSuccessHandler;
 
 @Configuration //개별적인 스프링 빈 설정 파일
 public class WebConfig implements WebMvcConfigurer{
 	
 	//빈을 보관하고 있는 장소 (스프링 컨테이너)
+	/*
 	@Autowired
 	ApplicationContext applicationContext;
 	
@@ -39,6 +45,36 @@ public class WebConfig implements WebMvcConfigurer{
 	public TestBean testBean() {
 		System.out.println("테스트 빈 실행됨2");
 		return new TestBean(); //return에 실려있는 클래스가 빈으로 등록이 되는것.
+	}
+	*/
+	
+	@Bean
+	public UserAuthHandler userAuthHandler() {
+		return new UserAuthHandler();
+	}
+	
+	@Bean
+	public UserSuccessHandler userSuccessHandler() {
+		return new UserSuccessHandler();
+	}
+
+	
+	
+	//WebMvcConfigurer클래스가 제공해주는 인터셉터 추가 함수
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		
+		registry.addInterceptor(userAuthHandler())
+				//.addPathPatterns(Arrays.asList("경로","경로","경로","경로"))
+			    .addPathPatterns("/user/*") //패스경로포함
+			    .excludePathPatterns("/user/login"); //패스경로제외
+		
+		//WebMvcConfigurer.super.addInterceptors(registry); // -> 아무것도 안 하면 부모님꺼를 실행해주는 내용 -> 신경 안 써도됨.
+	
+		//경로별로 인터셉터를 다르게 등록...
+		//포스트핸들러
+		registry.addInterceptor( userSuccessHandler())
+				.addPathPatterns("/user/*");
 	}
 	
 }
